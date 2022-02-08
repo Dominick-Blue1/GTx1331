@@ -1,3 +1,4 @@
+import java.util.InputMismatchException;
 import java.util.Scanner;
 
 public class Battleship {
@@ -10,6 +11,7 @@ public class Battleship {
         char hit = 'X';
         char miss = 'O';
         int shipNumber = 5;
+		
         
 
         // Begin Game
@@ -52,7 +54,7 @@ public class Battleship {
         
         // Gameover starts as false
         do {
-
+            
             System.out.println("Player 1, enter hit row/column:");
             int[] playerGuessCoordinates = playerVolley(gameBoardLength);
             char battleBoardUpdate = evaluatePlayerBoard(playerGuessCoordinates, player2Board, ship, water, hit, miss);
@@ -61,6 +63,7 @@ public class Battleship {
                 player2BattleHistoryBoard = updateBattleBoard(player2BattleHistoryBoard, playerGuessCoordinates, battleBoardUpdate);
                 player1Hits++;
             }
+            
             
             printBattleShip(player2BattleHistoryBoard);
             System.out.println();
@@ -177,42 +180,49 @@ public class Battleship {
     private static char[][] placeInitialPlayerShips(char[][] gameBoard, int shipNumber, char water, char ship) {
         int placedShips = 0;
 		int gameBoardLength = gameBoard.length;
-			while (placedShips < shipNumber) {
-                
-                System.out.println("Enter ship " + (placedShips + 1) + " location:");
-                
-                int row = INPUT.nextInt();
-                int col = INPUT.nextInt();
-                if (invalidCoordinates(row, col, gameBoardLength)) {
+		
+        while (placedShips < shipNumber) {
+            System.out.println("Enter ship " + (placedShips + 1) + " location:");
+            do {
+                int[] location = generateShipCoordinates(gameBoardLength);
+                try {
+                    if (location[0] >= gameBoardLength || location[1] >= gameBoardLength) {
+                        System.out.println("Invalid coordinates. Choose different coordinates.");    
+                    }
+                } 
+                catch (IndexOutOfBoundsException indexOutOfBoundsException) {
+                    System.out.println("Invalid coordinates. Choose different coordinates.");
+                    INPUT.nextLine();
+                }
+                try {
+                    if (!INPUT.hasNextInt()) {
+                        System.out.println("Invalid coordinates. Choose different coordinates.");    
+                    } else {
+                        location[0] = INPUT.nextInt();
+                        location[1] = INPUT.nextInt();
+                    }
+                }
+                catch (InputMismatchException inputMismatchException) {
                     System.out.println("Invalid coordinates. Choose different coordinates.");    
                 }
-				char possiblePlacement = gameBoard[row][col];
-				if (possiblePlacement == water) {
-					gameBoard[row][col] = ship;
+            } while (!INPUT.hasNextInt());
+            int[] location = generateShipCoordinates(gameBoardLength);         
+            char possiblePlacement = gameBoard[location[0]][location[1]];
+            if (possiblePlacement == water) {
+					gameBoard[location[0]][location[1]] = ship;
                     placedShips++;
 				} else {
                     System.out.println("You already have a ship there. Choose different coordinates.");
                 }
-			}
+        }
 		return gameBoard;
 	}
-    public static boolean invalidCoordinates(int row, int col, int gameBoardLength) {
-        if (row < 0 || row > gameBoardLength || col < 0 || col > gameBoardLength) {
-            return true;
-        }
-        return false;
-    }
 
     private static int[] generateShipCoordinates(int gameBoardLength) {
         int[] coordinates = new int[2];
-		for (int i = 0; i < coordinates.length; i++) {
-            if ((coordinates[i] > gameBoardLength) || (!INPUT.hasNextInt())) {
-                System.out.println("Invalid coordinates. Choose different coordinates.");
-                INPUT.nextLine();
-            } else {
-                coordinates[i] = INPUT.nextInt();    
-                }
-            }
+        for (int i = 0; i < coordinates.length; i++) {
+            coordinates[i] = INPUT.nextInt();
+        }
 		return coordinates;
 	}
 
