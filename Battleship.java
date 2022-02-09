@@ -1,4 +1,3 @@
-import java.util.InputMismatchException;
 import java.util.Scanner;
 
 public class Battleship {
@@ -11,6 +10,8 @@ public class Battleship {
         char hit = 'X';
         char miss = 'O';
         int shipNumber = 5;
+        String player1Name = "PLAYER 1";
+        String player2Name = "PLAYER 2";
 		
         
 
@@ -19,7 +20,7 @@ public class Battleship {
 		System.out.println();
 		
 		
-		System.out.println("PLAYER 1, ENTER YOUR SHIPS' COORDINATES.");
+		System.out.println(player1Name + ", ENTER YOUR SHIPS' COORDINATES.");
         char[][] player1Board = createGameBoard(gameBoardLength, water, ship, shipNumber);
         char[][] player1BattleHistoryBoard = createBattleLogBoard(gameBoardLength, water, ship, shipNumber);
         
@@ -33,7 +34,7 @@ public class Battleship {
 		}
 
 
-		System.out.println("PLAYER 2, ENTER YOUR SHIPS' COORDINATES.");
+		System.out.println(player2Name + ", ENTER YOUR SHIPS' COORDINATES.");
         char[][] player2Board = createGameBoard(gameBoardLength, water, ship, shipNumber);
         char[][] player2BattleHistoryBoard = createBattleLogBoard(gameBoardLength, water, ship, shipNumber);
 
@@ -45,64 +46,54 @@ public class Battleship {
 			System.out.println();
 		}
 
-        boolean gameOver = false;
-        // int playerTurn = 1;
+    
+        boolean gameOn = true;
+        int playerTurn = 0;
         int player1Hits = 0;
-        // int player2Hits = 0;
+        int player2Hits = 0;
+
         
-        
-        
-        // Gameover starts as false
         do {
-            
-            System.out.println("Player 1, enter hit row/column:");
-            int[] playerGuessCoordinates = playerVolley(gameBoardLength);
-            char battleBoardUpdate = evaluatePlayerBoard(playerGuessCoordinates, player2Board, ship, water, hit, miss);
-            if (player1Hits != shipNumber) {
-                player2Board = updateBattleBoard(player2Board, playerGuessCoordinates, battleBoardUpdate);
-                player2BattleHistoryBoard = updateBattleBoard(player2BattleHistoryBoard, playerGuessCoordinates, battleBoardUpdate);
-                player1Hits++;
+
+            // Player 1
+            playerTurn++;
+            if (playerTurn % 2 == 1) {
+                System.out.println("Player 1, enter hit row/column:");
+                int[] playerGuessCoordinates = playerVolley(gameBoardLength);
+                char battleBoardUpdate = evaluatePlayerBoard(playerGuessCoordinates, player2Board, ship, water, hit, miss, player1Name, player2Name);
+                if (player1Hits != shipNumber) {
+                    player2Board = updateBattleBoard(player2Board, playerGuessCoordinates, battleBoardUpdate);
+                    player2BattleHistoryBoard = updateBattleBoard(player2BattleHistoryBoard, playerGuessCoordinates, battleBoardUpdate);
+                    player1Hits++;
+                }
+                printBattleShip(player2BattleHistoryBoard);
+                System.out.println();
+                if (player1Hits == gameBoardLength) {
+                    System.out.println(player1Name + " WINS! YOU SUNK ALL OF YOUR OPPONENT’S SHIPS!");
+                    gameOn = false;
+                }
             }
-            
-            
-            printBattleShip(player2BattleHistoryBoard);
-            System.out.println();
-            if (player1Hits == gameBoardLength) {
-                System.out.println("PLAYER 1 WINS! YOU SUNK ALL OF YOUR OPPONENT’S SHIPS!");
-                gameOver = true;
+            playerTurn--;
+            // Player Two
+            if (playerTurn % 2 == 0) {
+                System.out.println("Player 2, enter hit row/column:");
+                int[] playerGuessCoordinates = playerVolley(gameBoardLength);
+                char battleBoardUpdate = evaluatePlayerBoard(playerGuessCoordinates, player1Board, ship, water, hit, miss, player2Name, player1Name);
+                if (player2Hits != shipNumber) {
+                    player1Board = updateBattleBoard(player1Board, playerGuessCoordinates, battleBoardUpdate);
+                    player1BattleHistoryBoard = updateBattleBoard(player1BattleHistoryBoard, playerGuessCoordinates, battleBoardUpdate);
+                    player2Hits++;
+                }
+                
+                
+                printBattleShip(player1BattleHistoryBoard);
+                System.out.println();
+                if (player2Hits == gameBoardLength) {
+                    System.out.println(player2Name + " WINS! YOU SUNK ALL OF YOUR OPPONENT’S SHIPS!");
+                    gameOn = false;
+                }
             }
-            System.out.println();
-
-            
-
-
-            
-
-
-            // Player 1's turn
-            // if (playerTurn % 2 == 1) {
-            //     System.out.println("It's player one's turn.");
-            //     playerTurn--;
-
-            //     if (player2Hits == shipNumber) {
-            //         gameOver = true;
-            //         System.out.println("PLAYER 1 WINS! YOU SUNK ALL OF YOUR OPPONENT’S SHIPS!");
-            //         break;
-            //     }
-            // }
-
-            // if (playerTurn % 2 == 0) {
-            //     System.out.println("It's player two's turn.");
-            //     playerTurn++;
-
-            //     if (player2Hits == shipNumber) {
-            //         gameOver = true;
-            //         System.out.println("PLAYER 2 WINS! YOU SUNK ALL OF YOUR OPPONENT’S SHIPS!");
-            //         break;
-            //     }
-            // }
-        } while (gameOver != true);
-        
+        } while (gameOn);        
         System.out.println();
         System.out.println("Final boards:");
         System.out.println();
@@ -135,20 +126,21 @@ public class Battleship {
         return player2BattleHistoryBoard;
     }
 
-    private static char evaluatePlayerBoard(int[] playerGuessCoordinates, char[][] player2Board, char ship, char water, char hit, char miss) {
+    private static char evaluatePlayerBoard(int[] playerGuessCoordinates, char[][] playerBoard, char ship, char water, char hit, char miss, String playerName1, String playerName2) {
         String message;
         int row = playerGuessCoordinates[0];
         int col = playerGuessCoordinates[1];
-        char target = player2Board[row][col];
+        char target = playerBoard[row][col]; 
+
 
         if ((target == hit) || (target == miss)) {
             message = "You already fired on this spot. Choose different coordinates.";
         }
         if (target == ship) {
-            message = "PLAYER 1 HIT PLAYER 2’s SHIP!";
+            message = playerName1 + " HIT " + playerName2 + "’s SHIP!";
             target = hit;
         } else if (target == water) {
-            message = "PLAYER 1 MISSED!";
+            message = playerName1 + " MISSED!";
             target = miss;
         } else {
             message = "You already fired on this spot. Choose different coordinates.";
@@ -180,41 +172,17 @@ public class Battleship {
     private static char[][] placeInitialPlayerShips(char[][] gameBoard, int shipNumber, char water, char ship) {
         int placedShips = 0;
 		int gameBoardLength = gameBoard.length;
-		
-        while (placedShips < shipNumber) {
+        do {
             System.out.println("Enter ship " + (placedShips + 1) + " location:");
-            do {
-                int[] location = generateShipCoordinates(gameBoardLength);
-                try {
-                    if (location[0] >= gameBoardLength || location[1] >= gameBoardLength) {
-                        System.out.println("Invalid coordinates. Choose different coordinates.");    
-                    }
-                } 
-                catch (IndexOutOfBoundsException indexOutOfBoundsException) {
-                    System.out.println("Invalid coordinates. Choose different coordinates.");
-                    INPUT.nextLine();
-                }
-                try {
-                    if (!INPUT.hasNextInt()) {
-                        System.out.println("Invalid coordinates. Choose different coordinates.");    
-                    } else {
-                        location[0] = INPUT.nextInt();
-                        location[1] = INPUT.nextInt();
-                    }
-                }
-                catch (InputMismatchException inputMismatchException) {
-                    System.out.println("Invalid coordinates. Choose different coordinates.");    
-                }
-            } while (!INPUT.hasNextInt());
             int[] location = generateShipCoordinates(gameBoardLength);         
             char possiblePlacement = gameBoard[location[0]][location[1]];
             if (possiblePlacement == water) {
-					gameBoard[location[0]][location[1]] = ship;
-                    placedShips++;
-				} else {
-                    System.out.println("You already have a ship there. Choose different coordinates.");
-                }
-        }
+                gameBoard[location[0]][location[1]] = ship;
+                placedShips++;
+            } else {
+                System.out.println("You already have a ship there. Choose different coordinates.");
+            }
+        } while (placedShips < shipNumber);  
 		return gameBoard;
 	}
 
