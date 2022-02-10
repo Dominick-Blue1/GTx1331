@@ -1,3 +1,4 @@
+import java.util.InputMismatchException;
 import java.util.Scanner;
 
 public class Battleship {
@@ -174,7 +175,7 @@ public class Battleship {
 		int gameBoardLength = gameBoard.length;
         do {
             System.out.println("Enter ship " + (placedShips + 1) + " location:");
-            int[] location = generateShipCoordinates(gameBoardLength);         
+            int[] location = generateShipCoordinates(gameBoardLength, placedShips);
             char possiblePlacement = gameBoard[location[0]][location[1]];
             if (possiblePlacement == water) {
                 gameBoard[location[0]][location[1]] = ship;
@@ -186,11 +187,31 @@ public class Battleship {
 		return gameBoard;
 	}
 
-    private static int[] generateShipCoordinates(int gameBoardLength) {
+    private static int[] generateShipCoordinates(int gameBoardLength, int placedShips) {
         int[] coordinates = new int[2];
-        for (int i = 0; i < coordinates.length; i++) {
-            coordinates[i] = INPUT.nextInt();
-        }
+        
+            do {
+                int row = INPUT.nextInt();
+                int col = INPUT.nextInt();
+                try {
+                    
+                        if (row < gameBoardLength && col < gameBoardLength) {
+                            coordinates[0] = row;
+                            coordinates[1] = col;                    
+                        } else {
+                            System.out.println("Invalid coordinates. Choose different coordinates.");
+                            System.out.println("Enter ship " + (placedShips + 1) + " location:");
+                            
+                            INPUT.next();
+                            
+                        }
+                } catch (InputMismatchException e) {
+                    System.out.println("Invalid coordinates. Choose different coordinates.");
+                    System.out.println("Enter ship " + (placedShips + 1) + " location:");
+                    INPUT.next();
+                }
+                
+            } while (coordinates.length != 2);
 		return coordinates;
 	}
 
