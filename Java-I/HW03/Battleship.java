@@ -1,4 +1,3 @@
-import java.util.InputMismatchException;
 import java.util.Scanner;
 
 public class Battleship {
@@ -6,13 +5,15 @@ public class Battleship {
 
     public static void main(String[] args) {
         int gameBoardLength = 5;
+        int shipNumber = 5;
         char water = '-';
         char ship = '@';
         char hit = 'X';
         char miss = 'O';
-        int shipNumber = 5;
         String player1Name = "PLAYER 1";
         String player2Name = "PLAYER 2";
+        String player1NormalName = "Player 1";
+        String player2NormalName = "Player 2";
 		
         
 
@@ -33,8 +34,6 @@ public class Battleship {
         for (int i = 1; i <= 100; i++) {
 			System.out.println();
 		}
-
-
 		System.out.println(player2Name + ", ENTER YOUR SHIPS' COORDINATES.");
         char[][] player2Board = createGameBoard(gameBoardLength, water, ship, shipNumber);
         char[][] player2BattleHistoryBoard = createBattleLogBoard(gameBoardLength, water, ship, shipNumber);
@@ -50,17 +49,19 @@ public class Battleship {
     
         boolean gameOn = true;
         int playerTurn = 0;
+        
         int player1Hits = 0;
         int player2Hits = 0;
 
         
         do {
+            String playerName = "";
 
             // Player 1
             playerTurn++;
             if (playerTurn % 2 == 1) {
-                System.out.println("Player 1, enter hit row/column:");
-                int[] playerGuessCoordinates = playerVolley(gameBoardLength);
+                playerName = player1Name;
+                int[] playerGuessCoordinates = playerVolley(gameBoardLength, player1NormalName);
                 char battleBoardUpdate = evaluatePlayerBoard(playerGuessCoordinates, player2Board, ship, water, hit, miss, player1Name, player2Name);
                 if (player1Hits != shipNumber) {
                     player2Board = updateBattleBoard(player2Board, playerGuessCoordinates, battleBoardUpdate);
@@ -77,8 +78,8 @@ public class Battleship {
             playerTurn--;
             // Player Two
             if (playerTurn % 2 == 0) {
-                System.out.println("Player 2, enter hit row/column:");
-                int[] playerGuessCoordinates = playerVolley(gameBoardLength);
+                playerName = player2Name;
+                int[] playerGuessCoordinates = playerVolley(gameBoardLength, player2NormalName);
                 char battleBoardUpdate = evaluatePlayerBoard(playerGuessCoordinates, player1Board, ship, water, hit, miss, player2Name, player1Name);
                 if (player2Hits != shipNumber) {
                     player1Board = updateBattleBoard(player1Board, playerGuessCoordinates, battleBoardUpdate);
@@ -133,9 +134,9 @@ public class Battleship {
         int col = playerGuessCoordinates[1];
         char target = playerBoard[row][col]; 
 
-
         if ((target == hit) || (target == miss)) {
             message = "You already fired on this spot. Choose different coordinates.";
+            INPUT.next();
         }
         if (target == ship) {
             message = playerName1 + " HIT " + playerName2 + "’s SHIP!";
@@ -145,19 +146,33 @@ public class Battleship {
             target = miss;
         } else {
             message = "You already fired on this spot. Choose different coordinates.";
+            INPUT.next();
         }
         System.out.println(message);
         return target;
     }
 
-    private static int[] playerVolley(int gameBoardLength) {
-        int[] attackCoordinates = new int[2];
-                
-        for (int i = 0; i < attackCoordinates.length; i++) {
-            attackCoordinates[i] = INPUT.nextInt();
+    private static int[] playerVolley(int gameBoardLength, String playerName) {
+        int[] coordinates = new int[2];
+
+        System.out.println(playerName + ", enter hit row/column:");
+
+        for (int i = 0; i < coordinates.length; i++) {
+            while (!INPUT.hasNextInt()) {
+                System.out.println("Invalid coordinates. Choose different coordinates.");
+                System.out.println(playerName + " enter hit row/column:");
+                INPUT.next();
+            }
+            coordinates[i] = INPUT.nextInt();
+            if (coordinates[i] >= gameBoardLength) {
+                i--;
+                System.out.println("Invalid coordinates. Choose different coordinates.");
+                System.out.println(playerName + " enter hit row/column:");
+                INPUT.next();
+            }
         }
-        return attackCoordinates;
-    }
+        return coordinates;	
+	}
 
     private static char[][] createGameBoard(int gameBoardLength, char water, char ship, int shipNumber) {
         char[][] gameBoard = new char[gameBoardLength][gameBoardLength];
@@ -173,11 +188,13 @@ public class Battleship {
     private static char[][] placeInitialPlayerShips(char[][] gameBoard, int shipNumber, char water, char ship) {
         int placedShips = 0;
 		int gameBoardLength = gameBoard.length;
+        
         do {
             System.out.println("Enter ship " + (placedShips + 1) + " location:");
             int[] location = generateShipCoordinates(gameBoardLength, placedShips);
             char possiblePlacement = gameBoard[location[0]][location[1]];
             if (possiblePlacement == water) {
+                System.out.println("Ship Location ["+location[0]+"]["+location[1]+"]");
                 gameBoard[location[0]][location[1]] = ship;
                 placedShips++;
             } else {
@@ -189,31 +206,24 @@ public class Battleship {
 
     private static int[] generateShipCoordinates(int gameBoardLength, int placedShips) {
         int[] coordinates = new int[2];
-        
-            do {
-                int row = INPUT.nextInt();
-                int col = INPUT.nextInt();
-                try {
-                    
-                        if (row < gameBoardLength && col < gameBoardLength) {
-                            coordinates[0] = row;
-                            coordinates[1] = col;                    
-                        } else {
-                            System.out.println("Invalid coordinates. Choose different coordinates.");
-                            System.out.println("Enter ship " + (placedShips + 1) + " location:");
-                            
-                            INPUT.next();
-                            
-                        }
-                } catch (InputMismatchException e) {
-                    System.out.println("Invalid coordinates. Choose different coordinates.");
-                    System.out.println("Enter ship " + (placedShips + 1) + " location:");
-                    INPUT.next();
-                }
-                
-            } while (coordinates.length != 2);
-		return coordinates;
+
+        for (int i = 0; i < coordinates.length; i++) {
+            while (!INPUT.hasNextInt()) {
+                System.out.println("Invalid coordinates. Choose different coordinates.");
+                System.out.println("Enter ship " + (placedShips + 1) + " location:");
+                INPUT.next();
+            }
+            coordinates[i] = INPUT.nextInt();
+            if (coordinates[i] >= gameBoardLength) {
+                i--;
+                System.out.println("Invalid coordinates. Choose different coordinates.");
+                System.out.println("Enter ship " + (placedShips + 1) + " location:");
+                INPUT.next();
+            }
+        }
+        return coordinates;	
 	}
+
 
     private static void printBattleShip(char[][] player) {
 		System.out.print("  ");
